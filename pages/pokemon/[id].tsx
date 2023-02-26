@@ -95,7 +95,8 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
         params: {id}  
     })),
     //fallback: "blocking"
-    fallback: false // esto es para que aparesca el 404
+   // fallback: false // esto es para que aparesca el 404
+   fallback:"blocking" // para que revise si existe esa ruta
   }
 }
 
@@ -104,10 +105,24 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   
   const { id } = ctx.params as { id: string }
  
+  const pokemon = await getPokemonInfo(id)
+
+  if (!pokemon) {
+    return {
+      redirect: {
+        destination:'/',
+        permanent:false /** para los bots si se pone en false quiere decir
+                            que posiblemente pueda existir algo que en este
+                            momento no exista */
+      }
+    }
+  }
+
   return {
     props: {
-      pokemon: await getPokemonInfo(id)
-    }
+      pokemon
+    },
+    revalidate:86400, // ISR 60*60*24 para que se vuelva a validar la pagina c/24horas
   }
 }
 

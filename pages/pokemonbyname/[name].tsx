@@ -93,20 +93,35 @@ export const getStaticPaths: GetStaticPaths = async(ctx) => {
       // mandar los nombres para la generacion de las paginas
       const names: string [] = data.results.map( smallPokemon => smallPokemon.name )
 
+     
+
       return {
          paths: names.map( name => ({
              params: {name}  
          })),
-         fallback: false
+         fallback: 'blocking'
       }
 }
 
 export const getStaticProps: GetStaticProps = async(ctx) => {
     const { name } = ctx.params as { name: string }
+
+    const pokemon = await getPokemonInfo(name)
+    if (!pokemon) {
+        return {
+          redirect: {
+            destination:'/',
+            permanent:false /** para los bots si se pone en false quiere decir
+                                que posiblemente pueda existir algo que en este
+                                momento no exista */
+          }
+        }
+      }
     return {
         props: {
-          pokemon: await getPokemonInfo(name)
-        }
+          pokemon
+        },
+        revalidate:86400,
     }
 }
 
